@@ -1,4 +1,5 @@
-nats
+nats-streaming-*
+
 _images
 _upload
 _heartbeats
