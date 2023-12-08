@@ -1,0 +1,19 @@
+syntax="proto3";
+package proto;
+
+option go_package=".;pb";
+
+message Message {
+  string id = 1;
+  MediaObject media_object = 3;
+  TextObject text_object = 4;
+}
+
+message MediaObject {
+  string filename = 1;
+  string path = 2;
+}
+
+message TextObject {
+  string body = 1;
+}

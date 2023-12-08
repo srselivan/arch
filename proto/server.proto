@@ -1,0 +1,11 @@
+syntax="proto3";
+package proto;
+
+option go_package=".;pb";
+
+import "entity.proto";
+
+message GetAllResponse {
+  repeated Message messages = 1;
+  string error = 2;
+}
