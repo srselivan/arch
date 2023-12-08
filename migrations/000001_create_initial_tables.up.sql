@@ -1,10 +1,10 @@
-CREATE TABLE IF NOT EXISTS user_role
+create table if not exists user_role
 (
     id        int primary key,
     role_name text unique
 );
 
-CREATE TABLE IF NOT EXISTS "user"
+create table if not exists "user"
 (
     id       bigserial primary key,
     login    text unique,
@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS "user"
     role_id  int references user_role (id)
 );
 
-CREATE TABLE IF NOT EXISTS resource
+create table if not exists resource
 (
     id                bigserial primary key,
     method            text,
@@ -20,13 +20,13 @@ CREATE TABLE IF NOT EXISTS resource
     allowed_roles_ids jsonb
 );
 
-INSERT INTO user_role (id, role_name)
-VALUES (0, 'all_message_sender'),
+insert into user_role (id, role_name)
+values (0, 'all_message_sender'),
        (1, 'text_sender'),
        (2, 'file_sender');
 
-INSERT INTO resource (method, resource_name, allowed_roles_ids)
-VALUES ('POST', '/v1/messages', '[
+insert into resource (method, resource_name, allowed_roles_ids)
+values ('POST', '/v1/messages', '[
   0,
   1
 ]'),
@@ -35,26 +35,26 @@ VALUES ('POST', '/v1/messages', '[
          2
        ]');
 
-INSERT INTO "user" (login, password, role_id)
-VALUES ('ronaldo', 'password1', 0),
+insert into "user" (login, password, role_id)
+values ('ronaldo', 'password1', 0),
        ('messi', 'password1', 1),
        ('pele', 'password1', 2);
 
-CREATE OR REPLACE PROCEDURE check_user_role(_resource_name text, _resource_method text, _role_id int)
-    LANGUAGE plpgsql
-AS
+create or replace procedure check_user_role(_resource_name text, _resource_method text, _role_id int)
+    language plpgsql
+as
 $$
-BEGIN
-    IF NOT EXISTS(SELECT FROM resource r WHERE r.resource_name = _resource_name AND r.method = _resource_method) THEN
-        RAISE EXCEPTION 'resource not found';
-    END IF;
+begin
+    if not exists(select from resource r where r.resource_name = _resource_name and r.method = _resource_method) then
+        raise exception 'resource not found';
+    end if;
 
-    IF NOT EXISTS(SELECT
-                  FROM resource r
-                  WHERE r.resource_name = _resource_name
-                    AND r.method = _resource_method
-                    AND _role_id IN (SELECT jsonb_array_elements(r.allowed_roles_ids)::int)) THEN
-        RAISE EXCEPTION 'not allowed role';
-    END IF;
-END;
+    if not exists(select
+                  from resource r
+                  where r.resource_name = _resource_name
+                    and r.method = _resource_method
+                    and _role_id in (select jsonb_array_elements(r.allowed_roles_ids)::int)) then
+        raise exception 'not allowed role';
+    end if;
+end;
 $$;
