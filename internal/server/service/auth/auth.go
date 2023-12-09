@@ -15,7 +15,7 @@ var (
 )
 
 type authRepo interface {
-	Credentials(ctx context.Context, credentials entity.UserCredentials) (entity.UserCredentials, error)
+	Login(ctx context.Context, credentials entity.UserCredentials) (int, error)
 	CheckPermission(ctx context.Context, permission int, resource entity.ResourceInfo) error
 }
 
@@ -32,16 +32,16 @@ func New(repo authRepo, logger *zerolog.Logger) *Service {
 }
 
 func (s *Service) Login(ctx context.Context, credentials entity.UserCredentials, resource entity.ResourceInfo) error {
-	userCredentials, err := s.authRepo.Credentials(ctx, credentials)
+	perm, err := s.authRepo.Login(ctx, credentials)
 	if err != nil {
 		if errors.Is(err, repo.ErrNotAllowed) {
 			return ErrUnauthorized
 		}
 
-		return fmt.Errorf("s.authRepo.Credentials: %w", err)
+		return fmt.Errorf("s.authRepo.Login: %w", err)
 	}
 
-	if err = s.authRepo.CheckPermission(ctx, userCredentials.Permission, resource); err != nil {
+	if err = s.authRepo.CheckPermission(ctx, perm, resource); err != nil {
 		if errors.Is(err, repo.ErrNotAllowed) {
 			return ErrBadPermission
 		}

@@ -20,27 +20,24 @@ func New(db *sqlx.DB) *Repo {
 	}
 }
 
-const credentialsQuery = `
-select u.id,
-       u.login,
-       u.password,
-       u.role_id permission
+const loginQuery = `
+select u.role_id permission
 from "user" u
 where u.login = $1
   and u.password = $2
 `
 
-func (r *Repo) Credentials(ctx context.Context, credentials entity.UserCredentials) (entity.UserCredentials, error) {
-	var userCreds userCredentials
-	if err := r.db.GetContext(ctx, &userCreds, credentialsQuery, credentials.Login, credentials.Password); err != nil {
+func (r *Repo) Login(ctx context.Context, credentials entity.UserCredentials) (int, error) {
+	var u userInfo
+	if err := r.db.GetContext(ctx, &u, loginQuery, credentials.Login, credentials.Password); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return entity.UserCredentials{}, ErrNotAllowed
+			return 0, ErrNotAllowed
 		}
 
-		return entity.UserCredentials{}, fmt.Errorf("r.db.Get: %w", err)
+		return 0, fmt.Errorf("r.db.Get: %w", err)
 	}
 
-	return userCreds.serviceModel(), nil
+	return u.Permission, nil
 }
 
 const checkPermissionQuery = `
